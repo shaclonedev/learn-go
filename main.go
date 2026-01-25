@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -138,6 +139,33 @@ func getCat(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func deleteCat(w http.ResponseWriter, r *http.Request) {
+	id, err := parseCategoryID(r.URL.Path)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+	}
+
+	foundIndex := -1
+	for i, cat := range categories {
+		if cat.ID == id {
+			foundIndex = i
+			break
+		}
+	}
+
+	if foundIndex == -1 {
+		http.Error(w, "Category not found", http.StatusNotFound)
+		return
+	}
+
+	categories = append(categories[:foundIndex], categories[foundIndex+1:]...)
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+
+	fmt.Fprintf(w, "Category deleted successfully")
+	log.Printf("Deleted category with ID: %d\n", id)
+}
+
 func categoryHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -145,6 +173,9 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	case http.MethodPut:
 		updateCat(w, r)
+
+	case http.MethodDelete:
+		deleteCat(w, r)
 
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
