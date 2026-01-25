@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -197,6 +198,5 @@ func main() {
 	http.HandleFunc("/categories/", categoryHandler)
 	http.HandleFunc("/health", healthCheck)
 
-	log.Println("Server running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	http.ListenAndServe("0.0.0.0:"+os.Getenv("PORT"), nil)
 }
