@@ -26,6 +26,10 @@ func getAll(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(categories)
 }
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, "health!")
+}
 
 func create(w http.ResponseWriter, r *http.Request) {
 
@@ -191,6 +195,7 @@ func parseCategoryID(path string) (int64, error) {
 func main() {
 	http.HandleFunc("/categories", categoriesHandler)
 	http.HandleFunc("/categories/", categoryHandler)
+	http.HandleFunc("/health", healthCheck)
 
 	log.Println("Server running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
