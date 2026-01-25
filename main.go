@@ -14,20 +14,63 @@ type Category struct {
 	Description string `json:"description"`
 }
 
+var id int64 = 3
 var categories []Category = []Category{
 	{ID: 1, Name: "A", Description: "DESC A"},
 	{ID: 2, Name: "B", Description: "DESC B"},
 	{ID: 3, Name: "C", Description: "DESC C"},
 }
 
-func categoriesHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+func getAll(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(categories)
+}
+
+func create(w http.ResponseWriter, r *http.Request) {
+
+	if r.Header.Get("Content-Type") != "application/json" {
+		http.Error(w, "Content-Type must be json!", http.StatusUnsupportedMediaType)
 		return
 	}
 
+	var newCat Category
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	err := decoder.Decode(&newCat)
+	if err != nil {
+		http.Error(w, "Invalid data: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	defer r.Body.Close()
+
+	if newCat.Name == "" {
+		http.Error(w, "Name is required", http.StatusBadRequest)
+		return
+	}
+
+	id++
+	newCat.ID = id
+	categories = append(categories, newCat)
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(categories)
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newCat)
+	log.Printf("Created product: %+v\n", newCat)
+}
+
+func categoriesHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		getAll(w)
+
+	case http.MethodPost:
+		create(w, r)
+
+	default:
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
 }
 
 func categoryHandler(w http.ResponseWriter, r *http.Request) {
