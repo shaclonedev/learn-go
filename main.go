@@ -57,7 +57,7 @@ func create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newCat)
-	log.Printf("Created product: %+v\n", newCat)
+	log.Printf("Created category: %+v\n", newCat)
 }
 
 func categoriesHandler(w http.ResponseWriter, r *http.Request) {
@@ -73,12 +73,57 @@ func categoriesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func categoryHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+func updateCat(w http.ResponseWriter, r *http.Request) {
+	id, err := parseCategoryID(r.URL.Path)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
 
+	if r.Header.Get("Content-Type") != "application/json" {
+		http.Error(w, "Content-Type must be json!", http.StatusUnsupportedMediaType)
+		return
+	}
+
+	var updatedCat Category
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	err = decoder.Decode(&updatedCat)
+	if err != nil {
+		http.Error(w, "Invalid data: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	if updatedCat.Name == "" {
+		http.Error(w, "Name is required", http.StatusBadRequest)
+		return
+	}
+
+	found := false
+	for i, cat := range categories {
+		if cat.ID == id {
+			updatedCat.ID = id
+			categories[i] = updatedCat
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		http.Error(w, "Category not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(updatedCat)
+
+	log.Printf("Updated category: %+v\n", updatedCat)
+}
+
+func getCat(w http.ResponseWriter, r *http.Request) {
 	id, err := parseCategoryID(r.URL.Path)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
@@ -91,6 +136,20 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+func categoryHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		getCat(w, r)
+
+	case http.MethodPut:
+		updateCat(w, r)
+
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+
 }
 
 func parseCategoryID(path string) (int64, error) {
