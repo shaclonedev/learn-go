@@ -140,6 +140,8 @@ Implement full CRUD operations for the Category model:
 - [x] POST `/categories` - Create a new category
 - [x] PUT `/categories/{id}` - Update an existing category
 - [x] DELETE `/categories/{id}` - Delete a category
+- [ ] sqlite
+- [ ] unit test
 
 ## 📖 Resources
 
