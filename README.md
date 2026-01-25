@@ -17,6 +17,7 @@ This project is a learning exercise to understand Go programming and REST API de
 ## 📦 Data Model
 
 ### Category
+
 ```go
 type Category struct {
     ID          int64  `json:"id"`
@@ -29,28 +30,31 @@ type Category struct {
 
 Currently implemented endpoints:
 
-| Method | Endpoint | Description | Status |
-|--------|----------|-------------|--------|
-| GET | `/categories` | Get all categories | ✅ Implemented |
-| GET | `/categories/{id}` | Get a single category by ID | ✅ Implemented |
-| POST | `/categories` | Create a new category | 🔄 In Progress |
-| PUT | `/categories/{id}` | Update an existing category | 🔄 In Progress |
-| DELETE | `/categories/{id}` | Delete a category | 🔄 In Progress |
+| Method | Endpoint           | Description                 | Status         |
+| ------ | ------------------ | --------------------------- | -------------- |
+| GET    | `/categories`      | Get all categories          | ✅ Implemented |
+| GET    | `/categories/{id}` | Get a single category by ID | ✅ Implemented |
+| POST   | `/categories`      | Create a new category       | 🔄 In Progress |
+| PUT    | `/categories/{id}` | Update an existing category | 🔄 In Progress |
+| DELETE | `/categories/{id}` | Delete a category           | 🔄 In Progress |
 
 ## 🛠️ Installation & Setup
 
 ### Prerequisites
+
 - Go 1.x or higher installed on your system
 - Basic understanding of Go syntax and HTTP concepts
 
 ### Running the Application
 
 1. Clone or navigate to the project directory:
+
 ```bash
 cd /path/to/learn-go
 ```
 
 2. Run the application:
+
 ```bash
 go run main.go
 ```
@@ -60,11 +64,13 @@ go run main.go
 ## 📝 Usage Examples
 
 ### Get All Categories
+
 ```bash
 curl http://localhost:8080/categories
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -86,11 +92,13 @@ curl http://localhost:8080/categories
 ```
 
 ### Get Single Category
+
 ```bash
 curl http://localhost:8080/categories/1
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -129,30 +137,9 @@ Implement full CRUD operations for the Category model:
 
 - [x] GET `/categories` - Retrieve all categories
 - [x] GET `/categories/{id}` - Retrieve a single category
-- [ ] POST `/categories` - Create a new category
-- [ ] PUT `/categories/{id}` - Update an existing category
-- [ ] DELETE `/categories/{id}` - Delete a category
-
-## 🔧 Next Steps
-
-To complete the CRUD implementation, you need to:
-
-1. **POST Handler**: Implement the create functionality
-   - Parse JSON from request body
-   - Generate new ID
-   - Add to categories slice
-   - Return created category
-
-2. **PUT Handler**: Implement the update functionality
-   - Parse ID from URL
-   - Parse JSON from request body
-   - Find and update existing category
-   - Return updated category
-
-3. **DELETE Handler**: Implement the delete functionality
-   - Parse ID from URL
-   - Remove category from slice
-   - Return success response
+- [x] POST `/categories` - Create a new category
+- [x] PUT `/categories/{id}` - Update an existing category
+- [x] DELETE `/categories/{id}` - Delete a category
 
 ## 📖 Resources
 
