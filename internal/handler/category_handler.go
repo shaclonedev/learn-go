@@ -73,7 +73,7 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // Helper untuk mengambil ID dari URL
 func (h *CategoryHandler) getIDFromURL(path string) (int, error) {
-	idStr := strings.TrimPrefix(path, "/categories/")
+	idStr := strings.TrimPrefix(path, "/api/categories/")
 	return strconv.Atoi(idStr)
 }
 
