@@ -3,12 +3,20 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"learn-go/internal/database"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/spf13/viper"
 )
+
+type Config struct {
+	Port   string `mapstructure:"port"`
+	DBConn string `mapstructure:"db_conn"`
+}
 
 type Category struct {
 	ID          int64  `json:"id"`
@@ -194,9 +202,35 @@ func parseCategoryID(path string) (int64, error) {
 }
 
 func main() {
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	if _, err := os.Stat(".env"); err == nil {
+		viper.SetConfigFile(".env")
+		_ = viper.ReadInConfig()
+
+	}
+
 	http.HandleFunc("/categories", categoriesHandler)
 	http.HandleFunc("/categories/", categoryHandler)
 	http.HandleFunc("/health", healthCheck)
 
-	http.ListenAndServe("0.0.0.0:"+os.Getenv("PORT"), nil)
+	config := Config{
+		Port:   viper.GetString("PORT"),
+		DBConn: viper.GetString("DB_CONN"),
+	}
+
+	db, err := database.InitDB(config.DBConn)
+	if err != nil {
+		log.Fatal("Failed to initialize database:", err)
+	}
+	defer db.Close()
+
+	addr := "0.0.0.0:" + config.Port
+	fmt.Println("Server running di", addr)
+
+	err = http.ListenAndServe(addr, nil)
+	if err != nil {
+		fmt.Println("gagal running server", err)
+	}
 }
