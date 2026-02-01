@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"learn-go/internal/model"
 )
 
@@ -15,7 +16,7 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 }
 
 func (repo *ProductRepository) GetAll() ([]model.Product, error) {
-	query := "SELECT products.id, products.name, products.price, products.stock, products.description, categories.name as category_name FROM products left join categories on products.category_id = categories.id"
+	query := "SELECT products.id, products.name, products.price, products.stock, products.description, categories.name as category_name, categories.id as category_id FROM products left join categories on products.category_id = categories.id"
 	rows, err := repo.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -25,7 +26,7 @@ func (repo *ProductRepository) GetAll() ([]model.Product, error) {
 	products := make([]model.Product, 0)
 	for rows.Next() {
 		var p model.Product
-		err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.Stock, &p.Description, &p.CategoryName)
+		err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.Stock, &p.Description, &p.CategoryName, &p.CategoryID)
 		if err != nil {
 			return nil, err
 		}
@@ -35,18 +36,19 @@ func (repo *ProductRepository) GetAll() ([]model.Product, error) {
 	return products, nil
 }
 
-func (repo *ProductRepository) Create(product *model.Product) error {
-	query := "INSERT INTO products (name, price, stock, description) VALUES ($1, $2, $3, $4) RETURNING id"
-	err := repo.db.QueryRow(query, product.Name, product.Price, product.Stock, product.Description).Scan(&product.ID)
-	return err
+func (repo *ProductRepository) Create(product *model.Product) (int, error) {
+	query := "INSERT INTO products (name, price, stock, description, category_id) VALUES ($1, $2, $3, $4, $5) RETURNING id"
+	err := repo.db.QueryRow(query, product.Name, product.Price, product.Stock, product.Description, product.CategoryID).Scan(&product.ID)
+	fmt.Println("ID", product.ID)
+	return product.ID, err
 }
 
 // GetByID - ambil produk by ID
 func (repo *ProductRepository) GetByID(id int) (*model.Product, error) {
-	query := "SELECT products.id, products.name, products.price, products.stock, products.description, categories.name as category_name FROM products left join categories on products.category_id = categories.id WHERE products.id = $1"
+	query := "SELECT products.id, products.name, products.price, products.stock, products.description, categories.name as category_name, categories.id as category_id FROM products left join categories on products.category_id = categories.id WHERE products.id = $1"
 
 	var p model.Product
-	err := repo.db.QueryRow(query, id).Scan(&p.ID, &p.Name, &p.Price, &p.Stock, &p.Description, &p.CategoryName)
+	err := repo.db.QueryRow(query, id).Scan(&p.ID, &p.Name, &p.Price, &p.Stock, &p.Description, &p.CategoryName, &p.CategoryID)
 	if err == sql.ErrNoRows {
 		return nil, errors.New("product not found")
 	}
