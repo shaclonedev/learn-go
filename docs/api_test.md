@@ -21,18 +21,18 @@ curl -X GET http://localhost:8080/health
 
 ## 📁 Category API
 
-Endpoint: `/categories`
+Endpoint: `/api/categories`
 
 ### 1. Get All Categories
 
 ```bash
-curl -X GET http://localhost:8080/categories
+curl -X GET http://localhost:8080/api/categories
 ```
 
 ### 2. Create a New Category
 
 ```bash
-curl -X POST http://localhost:8080/categories \
+curl -X POST http://localhost:8080/api/categories \
      -H "Content-Type: application/json" \
      -d '{"name": "Hardware", "description": "PC parts and tools"}'
 ```
@@ -40,13 +40,13 @@ curl -X POST http://localhost:8080/categories \
 ### 3. Get Detail of One Category
 
 ```bash
-curl -X GET http://localhost:8080/categories/1
+curl -X GET http://localhost:8080/api/categories/1
 ```
 
 ### 4. Update a Category
 
 ```bash
-curl -X PUT http://localhost:8080/categories/1 \
+curl -X PUT http://localhost:8080/api/categories/1 \
      -H "Content-Type: application/json" \
      -d '{"name": "Updated Hardware", "description": "Revised description"}'
 ```
@@ -54,7 +54,7 @@ curl -X PUT http://localhost:8080/categories/1 \
 ### 5. Delete a Category
 
 ```bash
-curl -X DELETE http://localhost:8080/categories/1
+curl -X DELETE http://localhost:8080/api/categories/1
 ```
 
 ---
