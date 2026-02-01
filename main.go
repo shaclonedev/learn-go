@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"learn-go/internal/database"
+	"learn-go/internal/handler"
+	"learn-go/internal/repository"
+	"learn-go/internal/service"
 	"log"
 	"net/http"
 	"os"
@@ -208,13 +211,7 @@ func main() {
 	if _, err := os.Stat(".env"); err == nil {
 		viper.SetConfigFile(".env")
 		_ = viper.ReadInConfig()
-
 	}
-
-	http.HandleFunc("/categories", categoriesHandler)
-	http.HandleFunc("/categories/", categoryHandler)
-	http.HandleFunc("/health", healthCheck)
-
 	config := Config{
 		Port:   viper.GetString("PORT"),
 		DBConn: viper.GetString("DB_CONN"),
@@ -225,6 +222,16 @@ func main() {
 		log.Fatal("Failed to initialize database:", err)
 	}
 	defer db.Close()
+
+	productRepo := repository.NewProductRepository(db)
+	productService := service.NewProductService(productRepo)
+	productHandler := handler.NewProductHandler(productService)
+
+	http.HandleFunc("/api/products", productHandler.HandleProducts)
+	http.HandleFunc("/api/products/", productHandler.HandleProductByID)
+	http.HandleFunc("/categories", categoriesHandler)
+	http.HandleFunc("/categories/", categoryHandler)
+	http.HandleFunc("/health", healthCheck)
 
 	addr := "0.0.0.0:" + config.Port
 	fmt.Println("Server running di", addr)
