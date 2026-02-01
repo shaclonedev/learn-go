@@ -33,22 +33,17 @@ func (r *CategoryRepository) GetAll() ([]model.Category, error) {
 }
 
 func (r *CategoryRepository) Create(category *model.Category) error {
-	result, err := r.db.Exec("INSERT INTO categories (name, description) VALUES (?, ?)", category.Name, category.Description)
+	err := r.db.QueryRow("INSERT INTO categories (name, description) VALUES ($1, $2) RETURNING id", category.Name, category.Description).Scan(&category.ID)
 	if err != nil {
 		return err
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return err
-	}
-	category.ID = int(id)
 	return nil
 }
 
 func (r *CategoryRepository) GetByID(id int) (*model.Category, error) {
 	var category model.Category
-	err := r.db.QueryRow("SELECT id, name, description  FROM categories WHERE id = ?", id).Scan(&category.ID, &category.Name)
+	err := r.db.QueryRow("SELECT id, name, description FROM categories WHERE id = $1", id).Scan(&category.ID, &category.Name, &category.Description)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("category not found")
@@ -59,7 +54,7 @@ func (r *CategoryRepository) GetByID(id int) (*model.Category, error) {
 }
 
 func (r *CategoryRepository) Update(category *model.Category) error {
-	result, err := r.db.Exec("UPDATE categories SET name = ?, description = ? WHERE id = ?", category.Name, category.Description, category.ID)
+	result, err := r.db.Exec("UPDATE categories SET name = $1, description = $2 WHERE id = $3", category.Name, category.Description, category.ID)
 	if err != nil {
 		return err
 	}
@@ -75,7 +70,7 @@ func (r *CategoryRepository) Update(category *model.Category) error {
 }
 
 func (r *CategoryRepository) Delete(id int) error {
-	result, err := r.db.Exec("DELETE FROM categories WHERE id = ?", id)
+	result, err := r.db.Exec("DELETE FROM categories WHERE id = $1", id)
 	if err != nil {
 		return err
 	}
