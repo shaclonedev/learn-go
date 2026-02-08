@@ -2,8 +2,10 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"learn-go/internal/model"
+	"log"
 	"strings"
 )
 
@@ -88,9 +90,38 @@ func (repo *TransactionRepository) CreateTransaction(items []model.CheckoutItem)
 	}, nil
 }
 
-func (repo *TransactionRepository) ReportToday(startDate, endDate string) (*model.ReportTodayRequest, error) {
+func (repo *TransactionRepository) ReportToday() (*model.ReportTodayRequest, error) {
 	var transaction model.ReportTodayRequest
-	err := repo.db.QueryRow("SELECT SUM(total_amount) AS total_revenue, COUNT(*) AS total_transaksi FROM transactions WHERE DATE(created_at) BETWEEN $1 AND $2").Scan(&transaction.TotalRevenue, &transaction.TotalTransaction)
+	err := repo.db.QueryRow("SELECT SUM(total_amount) AS total_revenue, COUNT(*) AS total_transaksi FROM transactions WHERE DATE(created_at) = CURRENT_DATE").Scan(&transaction.TotalRevenue, &transaction.TotalTransaction)
+	if err != nil {
+		return nil, err
+	}
+
+	var bestSellingProduct model.BestSellingProduct
+	err = repo.db.QueryRow(`
+		SELECT p.name, SUM(td.quantity) AS total_quantity FROM transaction_details td
+		LEFT JOIN products p on p.id = td.product_id
+		WHERE DATE(td.created_at) = CURRENT_DATE 
+		GROUP BY td.product_id, p.name
+		ORDER BY total_quantity DESC LIMIT 1
+	`).Scan(&bestSellingProduct.ProductName, &bestSellingProduct.TotalQuantity)
+	if err != nil {
+		return nil, err
+	}
+
+	transaction.BestSellingProduct = bestSellingProduct
+	return &transaction, nil
+}
+
+func (repo *TransactionRepository) Report(startDate, endDate string) (*model.ReportTodayRequest, error) {
+	if startDate == "" || endDate == "" {
+		return nil, errors.New("start_date and end_date are required")
+	}
+
+	log.Println(startDate, endDate)
+
+	var transaction model.ReportTodayRequest
+	err := repo.db.QueryRow("SELECT SUM(total_amount) AS total_revenue, COUNT(*) AS total_transaksi FROM transactions WHERE DATE(created_at) BETWEEN $1 AND $2", startDate, endDate).Scan(&transaction.TotalRevenue, &transaction.TotalTransaction)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +133,7 @@ func (repo *TransactionRepository) ReportToday(startDate, endDate string) (*mode
 		WHERE DATE(td.created_at) BETWEEN $1 AND $2 
 		GROUP BY td.product_id, p.name
 		ORDER BY total_quantity DESC LIMIT 1
-	`).Scan(&bestSellingProduct.ProductName, &bestSellingProduct.TotalQuantity)
+	`, startDate, endDate).Scan(&bestSellingProduct.ProductName, &bestSellingProduct.TotalQuantity)
 	if err != nil {
 		return nil, err
 	}

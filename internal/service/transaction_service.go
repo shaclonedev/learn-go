@@ -17,6 +17,10 @@ func (s *TransactionService) Checkout(items []model.CheckoutItem, useLock bool) 
 	return s.repo.CreateTransaction(items)
 }
 
-func (s *TransactionService) ReportToday(startDate, endDate string) (*model.ReportTodayRequest, error) {
-	return s.repo.ReportToday(startDate, endDate)
+func (s *TransactionService) ReportToday() (*model.ReportTodayRequest, error) {
+	return s.repo.ReportToday()
+}
+
+func (s *TransactionService) Report(startDate, endDate string) (*model.ReportTodayRequest, error) {
+	return s.repo.Report(startDate, endDate)
 }
