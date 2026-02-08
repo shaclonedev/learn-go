@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"learn-go/internal/model"
+	"strings"
 )
 
 type TransactionRepository struct {
@@ -58,12 +59,21 @@ func (repo *TransactionRepository) CreateTransaction(items []model.CheckoutItem)
 		return nil, err
 	}
 
-	for i := range details {
-		details[i].TransactionID = transactionID
-		_, err = tx.Exec("INSERT INTO transaction_details (transaction_id, product_id, quantity, subtotal) VALUES ($1, $2, $3, $4)",
-			transactionID, details[i].ProductID, details[i].Quantity, details[i].Subtotal)
+	if len(details) > 0 {
+		placeholders := make([]string, 0, len(details))
+		values := make([]interface{}, 0, len(details)*4)
+		for i, d := range details {
+			details[i].TransactionID = transactionID
+
+			p := fmt.Sprintf("($%d, $%d, $%d, $%d)", i*4+1, i*4+2, i*4+3, i*4+4)
+			placeholders = append(placeholders, p)
+			values = append(values, transactionID, d.ProductID, d.Quantity, d.Subtotal)
+		}
+		query := fmt.Sprintf("INSERT INTO transaction_details (transaction_id, product_id, quantity, subtotal) VALUES %s",
+			strings.Join(placeholders, ","))
+		_, err = tx.Exec(query, values...)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to batch insert details: %w", err)
 		}
 	}
 
