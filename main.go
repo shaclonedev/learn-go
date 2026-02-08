@@ -46,6 +46,10 @@ func main() {
 	categoryService := service.NewCategoryService(categoryRepo)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
 
+	transactionRepo := repository.NewTransactionRepository(db)
+	transactionService := service.NewTransactionService(transactionRepo)
+	transactionHandler := handler.NewTransactionHandler(transactionService)
+
 	// Health Check
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -55,6 +59,7 @@ func main() {
 	http.HandleFunc("/api/products/", productHandler.HandleProductByID)
 	http.HandleFunc("/api/categories", categoryHandler.HandleCategories)
 	http.HandleFunc("/api/categories/", categoryHandler.HandleCategoryByID)
+	http.HandleFunc("/api/checkout", transactionHandler.HandleCheckout)
 
 	addr := "0.0.0.0:" + config.Port
 	fmt.Println("Server running di", addr)
