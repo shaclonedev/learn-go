@@ -88,9 +88,9 @@ func (repo *TransactionRepository) CreateTransaction(items []model.CheckoutItem)
 	}, nil
 }
 
-func (repo *TransactionRepository) ReportToday() (*model.ReportTodayRequest, error) {
+func (repo *TransactionRepository) ReportToday(startDate, endDate string) (*model.ReportTodayRequest, error) {
 	var transaction model.ReportTodayRequest
-	err := repo.db.QueryRow("SELECT SUM(total_amount) AS total_revenue, COUNT(*) AS total_transaksi FROM transactions WHERE DATE(created_at) = CURRENT_DATE").Scan(&transaction.TotalRevenue, &transaction.TotalTransaction)
+	err := repo.db.QueryRow("SELECT SUM(total_amount) AS total_revenue, COUNT(*) AS total_transaksi FROM transactions WHERE DATE(created_at) BETWEEN $1 AND $2").Scan(&transaction.TotalRevenue, &transaction.TotalTransaction)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (repo *TransactionRepository) ReportToday() (*model.ReportTodayRequest, err
 	err = repo.db.QueryRow(`
 		SELECT p.name, SUM(td.quantity) AS total_quantity FROM transaction_details td
 		LEFT JOIN products p on p.id = td.product_id
-		WHERE DATE(td.created_at) = CURRENT_DATE 
+		WHERE DATE(td.created_at) BETWEEN $1 AND $2 
 		GROUP BY td.product_id, p.name
 		ORDER BY total_quantity DESC LIMIT 1
 	`).Scan(&bestSellingProduct.ProductName, &bestSellingProduct.TotalQuantity)

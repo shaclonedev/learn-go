@@ -15,7 +15,6 @@ func NewTransactionHandler(service *service.TransactionService) *TransactionHand
 	return &TransactionHandler{service: service}
 }
 
-// multiple item apa aja, quantity nya
 func (h *TransactionHandler) HandleCheckout(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
@@ -46,7 +45,9 @@ func (h *TransactionHandler) Checkout(w http.ResponseWriter, r *http.Request) {
 func (h *TransactionHandler) HandleReportToday(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		report, err := h.service.ReportToday()
+		startDate := r.URL.Query().Get("start_date")
+		endDate := r.URL.Query().Get("end_date")
+		report, err := h.service.ReportToday(startDate, endDate)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
