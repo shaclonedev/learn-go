@@ -15,9 +15,16 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 	return &ProductRepository{db: db}
 }
 
-func (repo *ProductRepository) GetAll() ([]model.Product, error) {
+func (repo *ProductRepository) GetAll(name string) ([]model.Product, error) {
 	query := "SELECT products.id, products.name, products.price, products.stock, products.description, categories.name as category_name, categories.id as category_id FROM products left join categories on products.category_id = categories.id"
-	rows, err := repo.db.Query(query)
+
+	args := []interface{}{}
+	if name != "" {
+		query += " where name like $1"
+		args = append(args, "%"+name+"%")
+	}
+
+	rows, err := repo.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
